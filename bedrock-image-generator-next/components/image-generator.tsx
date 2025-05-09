@@ -57,7 +57,7 @@ export default function ImageGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-between" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="min-h-screen bg-white flex flex-col items-center justify-between w-full" style={{ fontFamily: 'Inter, sans-serif' }}>
       {/* Hero Banner with background image */}
       <div className="w-full relative" style={{ background: VERSENT_GREEN }}>
         <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ zIndex: 0 }}>
@@ -76,7 +76,7 @@ export default function ImageGenerator() {
         </div>
       </div>
       {/* Main Content with Sidebar */}
-      <div className="flex flex-1 w-full mt-[-4rem] z-10 items-stretch gap-8">
+      <div className="flex flex-1 w-full max-w-screen-2xl mt-[-4rem] z-10 items-stretch px-4 md:px-8 lg:px-12">
         {/* Sidebar */}
         <aside className="hidden md:flex flex-col w-80 bg-gray-50 rounded-2xl shadow-lg p-6 mr-8 mt-10 h-fit self-start">
           <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -96,25 +96,25 @@ export default function ImageGenerator() {
           </div>
         </aside>
         {/* Main Card */}
-        <main className="flex-1 flex items-start mt-10">
-          <Card className="p-10 w-full h-full bg-white shadow-2xl border-0 rounded-2xl">
+        <main className="flex-1 flex items-start mt-10 w-full">
+          <Card className="p-6 md:p-10 w-full h-full bg-white shadow-2xl border-0 rounded-2xl">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 text-center">Create Your Image</h2>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 w-full">
               <Input
                 placeholder="Describe your image..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 disabled={loading}
-                className="text-lg px-4 py-3 border-2 border-[#6ee43b] focus:border-[#4bbf2b] rounded-lg bg-white"
+                className="text-lg px-4 py-3 border-2 border-[#6ee43b] focus:border-[#4bbf2b] rounded-lg bg-white w-full"
               />
-              <Button onClick={handleGenerate} disabled={loading || !prompt} className="bg-[#6ee43b] hover:bg-[#4bbf2b] text-white text-lg font-semibold py-3 rounded-lg shadow">
+              <Button onClick={handleGenerate} disabled={loading || !prompt} className="bg-[#6ee43b] hover:bg-[#4bbf2b] text-white text-lg font-semibold py-3 rounded-lg shadow w-full">
                 {loading ? "Generating..." : "Generate Image"}
               </Button>
               {error && <div className="text-red-500 text-center font-medium">{error}</div>}
               {image && (
-                <div className="flex flex-col items-center mt-6">
+                <div className="flex flex-col items-center mt-6 w-full">
                   <img src={`data:image/png;base64,${image}`} alt="Generated" className="rounded-xl shadow-lg max-h-80 object-contain border-2 border-[#6ee43b]" />
-                  <div className="mt-4 text-lg text-gray-700 italic text-center bg-[#eaffd6] px-4 py-2 rounded">
+                  <div className="mt-4 text-lg text-gray-700 italic text-center bg-[#eaffd6] px-4 py-2 rounded w-full">
                     {generateCaption(prompt)}
                   </div>
                 </div>
