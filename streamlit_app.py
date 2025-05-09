@@ -7,11 +7,6 @@ import random
 from dotenv import load_dotenv
 
 # --- Versent Branding and Custom CSS ---
-# Read Versent logo as base64
-with open("assets/V-mark-Green.b64.txt") as f:
-    versent_logo_b64 = f.read().replace("\n", "")
-logo_data_uri = f"data:image/png;base64,{versent_logo_b64}"
-
 st.logo('assets/V-mark-Green.png', size='large')
 
 st.markdown("""
