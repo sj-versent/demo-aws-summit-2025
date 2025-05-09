@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -21,11 +21,40 @@ const PREDEFINED_PROMPTS = [
   "Abstract art inspired by the Australian bush",
 ];
 
+// Type for generated images
+interface GeneratedImage {
+  id: string;
+  prompt: string;
+  image: string;
+  timestamp: number;
+}
+
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [showGallery, setShowGallery] = useState(false);
+
+  // Load saved images from localStorage on component mount
+  useEffect(() => {
+    const savedImages = localStorage.getItem('generatedImages');
+    if (savedImages) {
+      try {
+        setGeneratedImages(JSON.parse(savedImages));
+      } catch (e) {
+        console.error('Failed to parse saved images', e);
+      }
+    }
+  }, []);
+
+  // Save images to localStorage whenever the collection changes
+  useEffect(() => {
+    if (generatedImages.length > 0) {
+      localStorage.setItem('generatedImages', JSON.stringify(generatedImages));
+    }
+  }, [generatedImages]);
 
   // Generate a creative caption based on the prompt
   const generateCaption = (prompt: string) => {
@@ -47,6 +76,16 @@ export default function ImageGenerator() {
       const data = await res.json();
       if (data.image) {
         setImage(data.image);
+        
+        // Add to generated images collection
+        const newImage: GeneratedImage = {
+          id: Date.now().toString(),
+          prompt,
+          image: data.image,
+          timestamp: Date.now()
+        };
+        
+        setGeneratedImages(prev => [newImage, ...prev]);
       } else {
         setError(data.error || "Unknown error");
       }
@@ -54,6 +93,13 @@ export default function ImageGenerator() {
       setError("Failed to generate image");
     }
     setLoading(false);
+  };
+  
+  const clearGallery = () => {
+    if (confirm('Are you sure you want to clear all generated images?')) {
+      setGeneratedImages([]);
+      localStorage.removeItem('generatedImages');
+    }
   };
 
   return (
@@ -94,9 +140,28 @@ export default function ImageGenerator() {
               </button>
             ))}
           </div>
+          
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <button
+              onClick={() => setShowGallery(!showGallery)}
+              className="flex items-center justify-center gap-2 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-xl px-4 py-3 transition-colors text-lg"
+            >
+              <span role="img" aria-label="gallery">{showGallery ? '🎨' : '🖼️'}</span>
+              {showGallery ? 'Hide Gallery' : 'View Gallery'}
+            </button>
+            
+            {generatedImages.length > 0 && (
+              <button
+                onClick={clearGallery}
+                className="mt-3 w-full bg-red-100 hover:bg-red-200 text-red-700 font-medium rounded-xl px-4 py-2 transition-colors text-sm"
+              >
+                Clear All Images
+              </button>
+            )}
+          </div>
         </aside>
         {/* Main Card */}
-        <main className="flex-1 flex items-start mt-10 w-full">
+        <main className="flex-1 flex flex-col items-start mt-10 w-full">
           <Card className="p-6 md:p-10 w-full h-full bg-white shadow-2xl border-0 rounded-2xl">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 text-center">Create Your Image</h2>
             <div className="flex flex-col gap-4 w-full">
@@ -121,8 +186,67 @@ export default function ImageGenerator() {
               )}
             </div>
           </Card>
+          
+          {/* Image Gallery Section */}
+          {showGallery && (
+            <div className="w-full mt-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">Your Image Gallery</h2>
+                <div className="flex items-center gap-2">
+                  {/* Mobile gallery toggle */}
+                  <button
+                    onClick={() => setShowGallery(!showGallery)}
+                    className="md:hidden flex items-center justify-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-xl px-4 py-2 transition-colors"
+                  >
+                    {showGallery ? 'Hide Gallery' : 'View Gallery'}
+                  </button>
+                </div>
+              </div>
+              
+              {generatedImages.length === 0 ? (
+                <div className="bg-gray-50 rounded-xl p-8 text-center">
+                  <p className="text-gray-500 text-lg">No images generated yet. Create your first image above!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {generatedImages.map((genImage) => (
+                    <div key={genImage.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
+                      <div className="p-1 bg-gradient-to-r from-[#6ee43b] to-[#4bbf2b]">
+                        <img 
+                          src={`data:image/png;base64,${genImage.image}`} 
+                          alt={genImage.prompt}
+                          className="w-full h-48 object-cover bg-white"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <p className="text-sm text-gray-500 mb-1">
+                          {new Date(genImage.timestamp).toLocaleString()}
+                        </p>
+                        <p className="text-gray-800 font-medium line-clamp-2">
+                          {genImage.prompt}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </main>
       </div>
+      
+      {/* Mobile Gallery Toggle Button */}
+      <div className="md:hidden fixed bottom-6 right-6 z-20">
+        <button
+          onClick={() => setShowGallery(!showGallery)}
+          className="bg-[#6ee43b] hover:bg-[#4bbf2b] text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg"
+        >
+          <span className="text-2xl" role="img" aria-label="gallery">
+            {showGallery ? '🎨' : '🖼️'}
+          </span>
+        </button>
+      </div>
+      
       {/* Footer */}
       <footer className="w-full text-center py-6 mt-10 text-gray-500 text-sm bg-gray-50 border-t border-gray-100">
         Inspired by <a href="https://versent.com.au/" target="_blank" rel="noopener noreferrer" className="text-[#6ee43b] font-semibold hover:underline">Versent</a> &mdash; Modern Cloud, Security, and Digital Transformation
