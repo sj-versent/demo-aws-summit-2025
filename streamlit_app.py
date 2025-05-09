@@ -6,11 +6,14 @@ import json
 import random
 from dotenv import load_dotenv
 import time
+import plotly.graph_objects as go
+import streamlit.components.v1 as components
 
 # --- Versent Branding and Custom CSS ---
 st.logo('assets/V-mark-Green.png', size='large')
 
 st.markdown("""
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
     /* Header */
     .main > div:first-child {background: #00E600;}
@@ -56,6 +59,9 @@ st.markdown("""
         padding: 0.5em;
         font-size: 1.1em;
     }
+    body, .versent-title, .versent-subtitle, .metric-card, .metric-label, .metric-value, .stButton > button, .stTextArea textarea, .stMarkdown, .stCaption, .stHeader, .stSidebar, .stTextInput, .stTextArea, .stSelectbox, .stExpander, .stTabs, .stColumn, .stDataFrame, .stTable, .stImage, .stAlert, .stWarning, .stSuccess, .stError, .stInfo {
+        font-family: 'Montserrat', sans-serif !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -96,15 +102,62 @@ if 'total_cost' not in st.session_state:
 if 'latencies' not in st.session_state:
     st.session_state.latencies = []
 
-# --- Metrics Display ---
-col1, col2, col3 = st.columns(3)
-col1.metric("Cost per Image", f"${COST_PER_IMAGE:.2f}")
-col2.metric("Total Cost", f"${st.session_state.total_cost:.2f}")
-if st.session_state.latencies:
-    avg_latency = sum(st.session_state.latencies) / len(st.session_state.latencies)
-    col3.metric("Avg Latency (s)", f"{avg_latency:.2f}")
-else:
-    col3.metric("Avg Latency (s)", "-")
+cost = st.session_state.total_cost
+latency = (sum(st.session_state.latencies) / len(st.session_state.latencies)) if st.session_state.latencies else 0
+
+# --- Fancy HTML/CSS Metrics Dashboard ---
+components.html(f'''
+<div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 2rem;">
+  <div class="metric-card">
+    <div class="metric-label">Cost per Image</div>
+    <div class="metric-value">${COST_PER_IMAGE:.2f}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Total Cost</div>
+    <div class="metric-value">${cost:.2f}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Avg Latency (s)</div>
+    <div class="metric-value">{latency:.2f}</div>
+  </div>
+</div>
+<style>
+.metric-card {{
+  background: rgba(255,255,255,0.25);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(0,230,0,0.15);
+  border: 1.5px solid rgba(0,230,0,0.25);
+  backdrop-filter: blur(8px);
+  padding: 1.5rem 2.5rem;
+  min-width: 160px;
+  text-align: center;
+  transition: transform 0.2s;
+}}
+.metric-card:hover {{
+  transform: scale(1.04);
+  box-shadow: 0 12px 40px 0 rgba(0,230,0,0.25);
+}}
+.metric-label {{
+  color: #00E600;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}}
+.metric-value {{
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #232F3E;
+  text-shadow: 0 2px 8px rgba(0,230,0,0.08);
+  animation: popIn 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+}}
+@keyframes popIn {{
+  0% {{ transform: scale(0.7); opacity: 0; }}
+  80% {{ transform: scale(1.1); opacity: 1; }}
+  100% {{ transform: scale(1); }}
+}}
+</style>
+''', height=180)
 
 def generate_image(prompt):
     try:
