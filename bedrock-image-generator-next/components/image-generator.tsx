@@ -13,6 +13,14 @@ import SydneyImage from "@/assets/summit-sydney.jpg";
 // Versent green and logo
 const VERSENT_GREEN = "#6ee43b";
 
+const PREDEFINED_PROMPTS = [
+  "A futuristic city skyline at sunset",
+  "A koala sitting in a eucalyptus tree, watercolor style",
+  "A cyberpunk kangaroo in Sydney",
+  "Outback landscape with dramatic clouds, photorealistic",
+  "Abstract art inspired by the Australian bush",
+];
+
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -67,31 +75,54 @@ export default function ImageGenerator() {
           <p className="text-xl md:text-2xl text-white/90 font-light text-center">Powered by AWS Bedrock & Nova Canvas | Inspired by AWS Summit Sydney</p>
         </div>
       </div>
-      {/* Main Card */}
-      <Card className="p-10 max-w-lg w-full mx-auto bg-white shadow-2xl border-0 rounded-2xl -mt-16 z-10">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900 text-center">Create Your Image</h2>
-        <div className="flex flex-col gap-4">
-          <Input
-            placeholder="Describe your image..."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            disabled={loading}
-            className="text-lg px-4 py-3 border-2 border-[#6ee43b] focus:border-[#4bbf2b] rounded-lg bg-white"
-          />
-          <Button onClick={handleGenerate} disabled={loading || !prompt} className="bg-[#6ee43b] hover:bg-[#4bbf2b] text-white text-lg font-semibold py-3 rounded-lg shadow">
-            {loading ? "Generating..." : "Generate Image"}
-          </Button>
-          {error && <div className="text-red-500 text-center font-medium">{error}</div>}
-          {image && (
-            <div className="flex flex-col items-center mt-6">
-              <img src={`data:image/png;base64,${image}`} alt="Generated" className="rounded-xl shadow-lg max-h-80 object-contain border-2 border-[#6ee43b]" />
-              <div className="mt-4 text-lg text-gray-700 italic text-center bg-[#eaffd6] px-4 py-2 rounded">
-                {generateCaption(prompt)}
-              </div>
+      {/* Main Content with Sidebar */}
+      <div className="flex flex-1 w-full mt-[-4rem] z-10 items-stretch gap-8">
+        {/* Sidebar */}
+        <aside className="hidden md:flex flex-col w-80 bg-gray-50 rounded-2xl shadow-lg p-6 mr-8 mt-10 h-fit self-start">
+          <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span role="img" aria-label="palette">🎨</span> Saved Prompts
+          </h3>
+          <div className="flex flex-col gap-4">
+            {PREDEFINED_PROMPTS.map((p, idx) => (
+              <button
+                key={idx}
+                className="bg-[#6ee43b] hover:bg-[#4bbf2b] text-gray-800 font-medium rounded-xl px-4 py-3 transition-colors text-lg shadow"
+                onClick={() => setPrompt(p)}
+                type="button"
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </aside>
+        {/* Main Card */}
+        <main className="flex-1 flex items-start mt-10">
+          <Card className="p-10 w-full h-full bg-white shadow-2xl border-0 rounded-2xl">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 text-center">Create Your Image</h2>
+            <div className="flex flex-col gap-4">
+              <Input
+                placeholder="Describe your image..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                disabled={loading}
+                className="text-lg px-4 py-3 border-2 border-[#6ee43b] focus:border-[#4bbf2b] rounded-lg bg-white"
+              />
+              <Button onClick={handleGenerate} disabled={loading || !prompt} className="bg-[#6ee43b] hover:bg-[#4bbf2b] text-white text-lg font-semibold py-3 rounded-lg shadow">
+                {loading ? "Generating..." : "Generate Image"}
+              </Button>
+              {error && <div className="text-red-500 text-center font-medium">{error}</div>}
+              {image && (
+                <div className="flex flex-col items-center mt-6">
+                  <img src={`data:image/png;base64,${image}`} alt="Generated" className="rounded-xl shadow-lg max-h-80 object-contain border-2 border-[#6ee43b]" />
+                  <div className="mt-4 text-lg text-gray-700 italic text-center bg-[#eaffd6] px-4 py-2 rounded">
+                    {generateCaption(prompt)}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </Card>
+          </Card>
+        </main>
+      </div>
       {/* Footer */}
       <footer className="w-full text-center py-6 mt-10 text-gray-500 text-sm bg-gray-50 border-t border-gray-100">
         Inspired by <a href="https://versent.com.au/" target="_blank" rel="noopener noreferrer" className="text-[#6ee43b] font-semibold hover:underline">Versent</a> &mdash; Modern Cloud, Security, and Digital Transformation
