@@ -52,7 +52,7 @@ export default function ImageGenerator() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-between" style={{ fontFamily: 'Inter, sans-serif' }}>
       {/* Hero Banner with background image */}
       <div className="w-full relative" style={{ background: VERSENT_GREEN }}>
-        <div className="absolute inset-0 w-full h-full overflow-hidden rounded-b-2xl" style={{ zIndex: 0 }}>
+        <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ zIndex: 0 }}>
           <Image
             src={SydneyImage}
             alt="AWS Summit Sydney"
@@ -61,7 +61,7 @@ export default function ImageGenerator() {
             priority
           />
         </div>
-        <div className="max-w-4xl mx-auto flex flex-col items-center py-10 px-6 rounded-b-2xl shadow-lg relative z-10">
+        <div className="flex flex-col items-center py-10 px-6 relative z-10">
           <Image src={VersentLogo} alt="Versent Logo" className="h-16 w-auto mb-4" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.08))' }} />
           <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-2 text-center">Bedrock Nova Canvas Image Generator</h1>
           <p className="text-xl md:text-2xl text-white/90 font-light text-center">Powered by AWS Bedrock & Nova Canvas | Inspired by AWS Summit Sydney</p>
