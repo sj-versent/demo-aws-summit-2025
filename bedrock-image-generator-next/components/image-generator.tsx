@@ -40,7 +40,7 @@ const STEPS = [
 
 const STEP_ICONS = [
   <img src="/react.svg" alt="React" className="w-24 h-24 object-contain mx-auto" />,
-  <img src="/vault.svg" alt="Vault" className="w-20 h-20 object-contain mx-auto mt-2" />,
+  <img src="/hashicorp-vault.svg" alt="Vault" className="w-16 h-166 object-contain mx-auto mt-2" />,
   <img src="/bedrock.svg" alt="Bedrock" className="w-24 h-24 object-contain mx-auto" />,
   <img src="/amazon-web-services.svg" alt="AWS" className="w-24 h-24 object-contain mx-auto" />,
 ];
