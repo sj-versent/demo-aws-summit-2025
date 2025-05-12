@@ -38,6 +38,13 @@ const STEPS = [
   "Image ready!"
 ];
 
+const STEP_ICONS = [
+  <img src="/react.svg" alt="React" className="w-24 h-24 object-contain mx-auto" />,
+  <img src="/vault.svg" alt="Vault" className="w-20 h-20 object-contain mx-auto" />,
+  <img src="/bedrock.svg" alt="Bedrock" className="w-24 h-24 object-contain mx-auto" />,
+  <img src="/amazon-web-services.svg" alt="AWS" className="w-24 h-24 object-contain mx-auto" />,
+];
+
 function getStepIndex(status: string) {
   return STEPS.findIndex((step) => status && status.startsWith(step));
 }
@@ -189,15 +196,18 @@ export default function ImageGenerator() {
             <h2 className="text-2xl font-bold mb-4 text-gray-900 text-center">Create Your Image</h2>
             {/* Stepper and Progress Bar */}
             <div className="w-full max-w-xl mx-auto mt-6 mb-4">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex justify-center gap-8 mb-2">
                 {STEPS.map((step, idx) => (
-                  <div key={step} className="flex-1 flex flex-col items-center min-w-[80px]">
+                  <div key={step} className="flex flex-col items-center min-w-[120px]">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center
-                        ${idx < currentStep ? "bg-green-400 text-white" : idx === currentStep ? "bg-blue-500 text-white animate-pulse" : "bg-gray-200 text-gray-400"}
+                      className={`
+                        w-32 h-32 rounded-full flex items-center justify-center
+                        border-4
+                        ${idx < currentStep ? "border-green-400 bg-white" : idx === currentStep ? "border-blue-500 bg-white animate-pulse" : "border-gray-200 bg-white"}
+                        shadow
                       `}
                     >
-                      {idx + 1}
+                      {STEP_ICONS[idx]}
                     </div>
                     <span className={`text-xs mt-1 text-center block ${idx === currentStep ? "font-bold text-blue-700" : "text-gray-500"}`}>
                       {step.replace("...", "")}
