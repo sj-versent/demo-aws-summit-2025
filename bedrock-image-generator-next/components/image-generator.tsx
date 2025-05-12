@@ -14,11 +14,12 @@ import SydneyImage from "@/assets/summit-sydney.jpg";
 const VERSENT_GREEN = "#6ee43b";
 
 const PREDEFINED_PROMPTS = [
-  "A futuristic city skyline at sunset",
-  "A koala sitting in a eucalyptus tree, watercolor style",
-  "A cyberpunk kangaroo in Sydney",
-  "Outback landscape with dramatic clouds, photorealistic",
-  "Abstract art inspired by the Australian bush",
+  "Sydney Opera House in 2050 with advanced sustainable architecture, AWS Summit banners",
+  "AI and human collaboration building the future of Sydney skyline, digital art style",
+  "Quantum computing center in Sydney Harbor with iconic bridge in background, futuristic",
+  "Sydney AWS Summit 2025 keynote with holographic displays and diverse audience",
+  "Australian wildlife integrated with smart city technology in Sydney CBD",
+  "Drone view of Sydney in 2040 with renewable energy infrastructure and green buildings",
 ];
 
 // Type for generated images
@@ -29,7 +30,7 @@ interface GeneratedImage {
   timestamp: number;
 }
 
-const MAX_IMAGES = 3;
+const MAX_IMAGES = 10; // Increased from 3 to allow more images
 
 const STEPS = [
   "Request received...",
@@ -60,22 +61,47 @@ export default function ImageGenerator() {
 
   const currentStep = getStepIndex(status);
 
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  
+  // Toggle fullscreen view for an image
+  const toggleFullscreen = (imageData: string | null) => {
+    setFullscreenImage(fullscreenImage === imageData ? null : imageData);
+  };
+  
   // Load saved images from localStorage on component mount
   useEffect(() => {
-    const savedImages = localStorage.getItem('generatedImages');
-    if (savedImages) {
-      try {
-        setGeneratedImages(JSON.parse(savedImages));
-      } catch (e) {
-        console.error('Failed to parse saved images', e);
+    try {
+      const savedImages = localStorage.getItem('generatedImages');
+      if (savedImages) {
+        const parsed = JSON.parse(savedImages);
+        // Silently validate the structure of saved images
+        if (Array.isArray(parsed)) {
+          // Filter out any invalid entries without logging errors
+          const validImages = parsed.filter(img => 
+            img && typeof img === 'object' && 
+            'id' in img && 'prompt' in img && 'image' in img && 'timestamp' in img
+          );
+          setGeneratedImages(validImages);
+        }
       }
+    } catch (e) {
+      // Silently handle parsing errors - no console logging
+      // Just start with an empty gallery
     }
   }, []);
 
   // Save images to localStorage whenever the collection changes
   useEffect(() => {
     if (generatedImages.length > 0) {
-      localStorage.setItem('generatedImages', JSON.stringify(generatedImages));
+      try {
+        // Silently try to store all images
+        localStorage.setItem('generatedImages', JSON.stringify(generatedImages));
+      } catch (e) {
+        // Silently handle storage errors - no console logging
+        // Just keep the images in memory
+      }
+    } else {
+      localStorage.removeItem('generatedImages');
     }
   }, [generatedImages]);
 
@@ -99,14 +125,47 @@ export default function ImageGenerator() {
       setStatus(data.status);
       if (data.image) {
         setImage(data.image);
-        // Add to generated images collection, limit to MAX_IMAGES
+        
+        // Create new image object
         const newImage: GeneratedImage = {
           id: Date.now().toString(),
           prompt,
           image: data.image,
           timestamp: Date.now()
         };
-        setGeneratedImages(prev => [newImage, ...prev].slice(0, MAX_IMAGES));
+        
+        // Add to generated images collection
+        setGeneratedImages(prev => {
+          // Create new array with the new image at the front, limited to MAX_IMAGES
+          const updatedImages = [newImage, ...prev].slice(0, MAX_IMAGES);
+          
+          // Silently try to store in localStorage - no error logging
+          try {
+            localStorage.setItem('generatedImages', JSON.stringify(updatedImages));
+          } catch (storageError) {
+            // Storage failed - silently handle by reducing the number of images
+            // Start with just the new image
+            let storableImages = [newImage];
+            
+            // Try adding previous images one by one until we hit the limit
+            for (let i = 0; i < prev.length && i < MAX_IMAGES - 1; i++) {
+              const testImages = [...storableImages, prev[i]];
+              try {
+                localStorage.setItem('generatedImages', JSON.stringify(testImages));
+                storableImages = updatedImages.slice(0, i + 2); // +2 because we include the new image
+              } catch (e) {
+                // Hit the limit, stop trying to add more (silently)
+                break;
+              }
+            }
+            
+            // Return whatever we could store without logging errors
+            return storableImages;
+          }
+          
+          return updatedImages;
+        });
+        
         setStatus("Image ready!");
         setLoading(false);
         eventSource.close();
@@ -134,6 +193,27 @@ export default function ImageGenerator() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-between w-full" style={{ fontFamily: 'Inter, sans-serif' }}>
+      {/* Fullscreen Image Overlay */}
+      {fullscreenImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => setFullscreenImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-screen w-full flex flex-col items-center">
+            <img 
+              src={`data:image/png;base64,${fullscreenImage}`} 
+              alt="Fullscreen view" 
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            />
+            <button 
+              className="mt-4 bg-white text-gray-800 px-6 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors"
+              onClick={() => setFullscreenImage(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
       {/* Hero Banner with background image */}
       <div className="w-full relative" style={{ background: VERSENT_GREEN }}>
         <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ zIndex: 0 }}>
@@ -240,7 +320,12 @@ export default function ImageGenerator() {
               {error && <div className="text-red-500 text-center font-medium">{error}</div>}
               {image && (
                 <div className="flex flex-col items-center mt-6 w-full">
-                  <img src={`data:image/png;base64,${image}`} alt="Generated" className="rounded-xl shadow-lg max-h-80 object-contain border-2 border-[#6ee43b]" />
+                  <img 
+                    src={`data:image/png;base64,${image}`} 
+                    alt="Generated" 
+                    className={`rounded-xl shadow-lg max-h-80 object-contain border-2 border-[#6ee43b] cursor-pointer transition-all duration-300 hover:opacity-90`}
+                    onClick={() => toggleFullscreen(image)}
+                  />
                   <div className="mt-4 text-lg text-gray-700 italic text-center bg-[#eaffd6] px-4 py-2 rounded w-full">
                     {generateCaption(prompt)}
                   </div>
@@ -274,10 +359,11 @@ export default function ImageGenerator() {
                   {generatedImages.map((genImage) => (
                     <div key={genImage.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
                       <div className="p-1 bg-gradient-to-r from-[#6ee43b] to-[#4bbf2b]">
-                        <img 
+                      <img 
                           src={`data:image/png;base64,${genImage.image}`} 
                           alt={genImage.prompt}
-                          className="w-full h-48 object-cover bg-white"
+                          className="w-full h-48 object-cover bg-white cursor-pointer hover:opacity-90 transition-all"
+                          onClick={() => toggleFullscreen(genImage.image)}
                         />
                       </div>
                       <div className="p-4">
