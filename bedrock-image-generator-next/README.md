@@ -1,36 +1,134 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bedrock Image Generator
 
-## Getting Started
+This next.js app provides a demo of using traditional VM infrastructure to access GenAI services hosted on Bedrock.
 
-First, run the development server:
+# Getting started
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Vault
+
+Perform the following vault configuration
+
+**Enable Approle**
+
+```
+vault auth enable approle
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Create an approle role for generating AWS credentials**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+vault write auth/approle/role/bedrock-app \
+    secret_id_ttl=24h \
+    token_ttl=20m \
+    token_max_ttl=30m \
+    policies=bedrock-app-policy
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Retrieve the `role-=id` & `secret-id` for the config**
 
-## Learn More
+>These will be required to set environment variables for the app to access vault
 
-To learn more about Next.js, take a look at the following resources:
+```
+vault read auth/approle/role/bedrock-app/role-id
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+vault write -f auth/approle/role/bedrock-app/secret-id
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Grant Vault access to generate credentials**
 
-## Deploy on Vercel
+```
+vault write aws/config/root \
+    access_key=A************* \
+    secret_key=x********************************** \
+    region=us-east-1
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Assign the policy to the approle**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+vault write aws/roles/bedrock-app \
+    credential_type=assumed_role \
+    policy_document=-<<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:ListFoundationModels"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+```
+
+**Grant access to the approle to generate credentials**
+
+```
+vault policy write bedrock-app-policy \
+    policy_document=-<<EOF
+path "aws/creds/bedrock-app" {
+  capabilities = ["read"]
+}
+EOF
+```
+
+>If using a policy file `vault policy write bedrock-app-policy bedrock-app-policy.hcl`
+
+**Create the role in the aws secrets engine**
+
+```
+vault write aws/roles/bedrock-app \
+    credential_type=assumed_role \
+    role_arns=arn:aws:iam::822202704205:role/VaultBedrockAccess
+```
+
+## App Environment Config
+
+**Configure a file name `.env.local` in the root of the app dir**
+
+Populate wiht the variables above
+
+```
+VAULT_ADDR=http://localhost:8200
+VAULT_ROLE_ID=d****-*****-****-****************
+VAULT_SECRET_ID=d****-*****-****-****************
+```
+
+## Start the app
+
+Once the above configuration is in place, start the app.
+
+```
+npm run dev
+
+> bedrock-image-generator-next@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.3.2 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://127.0.2.2:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 744ms
+```
+
+## Misc
+
+**List credential sessions
+
+```
+vault list sys/leases/lookup/aws/creds/bedrock-app
+```
+
+**Revoke active sessions
+
+```
+vault lease revoke -prefix aws/creds/bedrock-app
+```
