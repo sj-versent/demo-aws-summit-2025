@@ -29,6 +29,8 @@ interface GeneratedImage {
   timestamp: number;
 }
 
+const MAX_IMAGES = 3;
+
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -36,6 +38,7 @@ export default function ImageGenerator() {
   const [error, setError] = useState<string | null>(null);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [showGallery, setShowGallery] = useState(false);
+  const [status, setStatus] = useState<string>("");
 
   // Load saved images from localStorage on component mount
   useEffect(() => {
@@ -67,30 +70,34 @@ export default function ImageGenerator() {
     setLoading(true);
     setError(null);
     setImage(null);
+    setStatus("Request received...");
     try {
+      setStatus("Generating AWS credentials...");
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
       });
+      setStatus("Waiting for image...");
       const data = await res.json();
       if (data.image) {
         setImage(data.image);
-        
-        // Add to generated images collection
+        // Add to generated images collection, limit to MAX_IMAGES
         const newImage: GeneratedImage = {
           id: Date.now().toString(),
           prompt,
           image: data.image,
           timestamp: Date.now()
         };
-        
-        setGeneratedImages(prev => [newImage, ...prev]);
+        setGeneratedImages(prev => [newImage, ...prev].slice(0, MAX_IMAGES));
+        setStatus("Image ready!");
       } else {
         setError(data.error || "Unknown error");
+        setStatus("");
       }
     } catch (err) {
       setError("Failed to generate image");
+      setStatus("");
     }
     setLoading(false);
   };
@@ -175,6 +182,9 @@ export default function ImageGenerator() {
               <Button onClick={handleGenerate} disabled={loading || !prompt} className="bg-[#6ee43b] hover:bg-[#4bbf2b] text-white text-lg font-semibold py-3 rounded-lg shadow w-full">
                 {loading ? "Generating..." : "Generate Image"}
               </Button>
+              {status && (
+                <div className="text-blue-600 text-center font-medium animate-pulse">{status}</div>
+              )}
               {error && <div className="text-red-500 text-center font-medium">{error}</div>}
               {image && (
                 <div className="flex flex-col items-center mt-6 w-full">

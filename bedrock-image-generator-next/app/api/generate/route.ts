@@ -3,11 +3,44 @@ import {
   BedrockRuntimeClient,
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
+// Removed fromStatic import
 
-const client = new BedrockRuntimeClient({ region: process.env.AWS_REGION });
+// Fetch AWS credentials from Vault-backed API
+async function getAWSCreds() {
+  try {
+    const res = await fetch('http://localhost:3000/api/vault-creds');
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData?.message || 'Failed to fetch AWS credentials from Vault API');
+    }
+    const data = await res.json();
+    // Map Vault response to AWS credentials format
+    return {
+      accessKeyId: data.accessKeyId,
+      secretAccessKey: data.secretAccessKey,
+      sessionToken: data.sessionToken,
+      region: data.region || 'us-east-1', // Default region if not provided
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error fetching AWS credentials from Vault';
+    throw new Error(msg);
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
+    // Fetch AWS credentials from Vault
+    const { accessKeyId, secretAccessKey, sessionToken, region } = await getAWSCreds();
+    console.log('AWS Credentials Used:', { accessKeyId, secretAccessKey, sessionToken, region });
+    const client = new BedrockRuntimeClient({
+      region,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+        sessionToken,
+      },
+    });
+
     const { prompt } = await req.json();
 
     const payload = {
@@ -43,6 +76,7 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     console.error(err);
     const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    // Return a user-friendly error for the UI
+    return NextResponse.json({ error: msg || 'An error occurred while generating the image.' }, { status: 500 });
   }
 }
