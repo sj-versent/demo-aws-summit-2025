@@ -71,15 +71,12 @@ export default function ImageGenerator() {
     setError(null);
     setImage(null);
     setStatus("Request received...");
-    try {
-      setStatus("Generating AWS credentials...");
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      setStatus("Waiting for image...");
-      const data = await res.json();
+
+    const eventSource = new EventSource(`/api/generate/progress?prompt=${encodeURIComponent(prompt)}`);
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setStatus(data.status);
       if (data.image) {
         setImage(data.image);
         // Add to generated images collection, limit to MAX_IMAGES
@@ -91,15 +88,21 @@ export default function ImageGenerator() {
         };
         setGeneratedImages(prev => [newImage, ...prev].slice(0, MAX_IMAGES));
         setStatus("Image ready!");
-      } else {
-        setError(data.error || "Unknown error");
-        setStatus("");
+        setLoading(false);
+        eventSource.close();
       }
-    } catch (err) {
+      if (data.status && data.status.startsWith("No image")) {
+        setError(data.status);
+        setLoading(false);
+        eventSource.close();
+      }
+    };
+
+    eventSource.onerror = (err) => {
       setError("Failed to generate image");
-      setStatus("");
-    }
-    setLoading(false);
+      setLoading(false);
+      eventSource.close();
+    };
   };
   
   const clearGallery = () => {
