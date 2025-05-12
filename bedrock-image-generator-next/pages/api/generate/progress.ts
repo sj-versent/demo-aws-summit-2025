@@ -6,15 +6,20 @@ function sendSSE(res: NextApiResponse, data: object) {
   if (typeof (res as any).flush === 'function') (res as any).flush();
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
   sendSSE(res, { status: 'Request received...' });
+  await sleep(700); // Add a short delay for smoother UX
 
   try {
-    sendSSE(res, { status: 'Generating AWS credentials...' });
+    sendSSE(res, { status: 'Generating AWS creds...' });
     const credsRes = await fetch('http://localhost:3000/api/vault-creds');
     const creds = await credsRes.json();
 

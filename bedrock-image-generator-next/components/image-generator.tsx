@@ -31,6 +31,17 @@ interface GeneratedImage {
 
 const MAX_IMAGES = 3;
 
+const STEPS = [
+  "Request received...",
+  "Generating AWS creds...",
+  "Waiting for image...",
+  "Image ready!"
+];
+
+function getStepIndex(status: string) {
+  return STEPS.findIndex((step) => status && status.startsWith(step));
+}
+
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -39,6 +50,8 @@ export default function ImageGenerator() {
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [showGallery, setShowGallery] = useState(false);
   const [status, setStatus] = useState<string>("");
+
+  const currentStep = getStepIndex(status);
 
   // Load saved images from localStorage on component mount
   useEffect(() => {
@@ -174,6 +187,31 @@ export default function ImageGenerator() {
         <main className="flex-1 flex flex-col items-start mt-10 w-full">
           <Card className="p-6 md:p-10 w-full h-full bg-white shadow-2xl border-0 rounded-2xl">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 text-center">Create Your Image</h2>
+            {/* Stepper and Progress Bar */}
+            <div className="w-full max-w-xl mx-auto mt-6 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                {STEPS.map((step, idx) => (
+                  <div key={step} className="flex-1 flex flex-col items-center min-w-[80px]">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center
+                        ${idx < currentStep ? "bg-green-400 text-white" : idx === currentStep ? "bg-blue-500 text-white animate-pulse" : "bg-gray-200 text-gray-400"}
+                      `}
+                    >
+                      {idx + 1}
+                    </div>
+                    <span className={`text-xs mt-1 text-center block ${idx === currentStep ? "font-bold text-blue-700" : "text-gray-500"}`}>
+                      {step.replace("...", "")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-green-400 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
+                />
+              </div>
+            </div>
             <div className="flex flex-col gap-4 w-full">
               <Input
                 placeholder="Describe your image..."
