@@ -40,7 +40,7 @@ const STEPS = [
 
 const STEP_ICONS = [
   <img src="/react.svg" alt="React" className="w-24 h-24 object-contain mx-auto" />,
-  <img src="/vault.svg" alt="Vault" className="w-20 h-20 object-contain mx-auto" />,
+  <img src="/vault.svg" alt="Vault" className="w-20 h-20 object-contain mx-auto mt-2" />,
   <img src="/bedrock.svg" alt="Bedrock" className="w-24 h-24 object-contain mx-auto" />,
   <img src="/amazon-web-services.svg" alt="AWS" className="w-24 h-24 object-contain mx-auto" />,
 ];
@@ -195,16 +195,17 @@ export default function ImageGenerator() {
           <Card className="p-6 md:p-10 w-full h-full bg-white shadow-2xl border-0 rounded-2xl">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 text-center">Create Your Image</h2>
             {/* Stepper and Progress Bar */}
-            <div className="w-full max-w-xl mx-auto mt-6 mb-4">
-              <div className="flex justify-center gap-8 mb-2">
+            <div className="w-full mx-auto mt-6 mb-4">
+              <div className="flex justify-between w-full mb-2">
                 {STEPS.map((step, idx) => (
-                  <div key={step} className="flex flex-col items-center min-w-[120px]">
+                  <div key={step} className="flex flex-col items-center flex-1">
                     <div
                       className={`
-                        w-32 h-32 rounded-full flex items-center justify-center
+                        w-16 h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center
                         border-4
                         ${idx < currentStep ? "border-green-400 bg-white" : idx === currentStep ? "border-blue-500 bg-white animate-pulse" : "border-gray-200 bg-white"}
                         shadow
+                        ${idx === 1 ? "flex items-center justify-center" : ""}
                       `}
                     >
                       {STEP_ICONS[idx]}
