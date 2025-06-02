@@ -6,9 +6,9 @@ import React from "react";
 
 const VIEWS = [
   { key: "nutanix", label: "Nutanix", mp4: "/architecture/nutanix.mp4" },
-  { key: "vault", label: "Vault" },
-  { key: "bedrock", label: "Bedrock" },
-  { key: "aws", label: "AWS Load Balancing" },
+  { key: "vault", label: "Vault", mp4: "/architecture/vault.mp4" },
+  { key: "bedrock", label: "Bedrock", mp4: "/architecture/bedrock.mp4" },
+  { key: "aws", label: "AWS Load Balancing", mp4: "/architecture/aws.mp4" },
 ];
 
 export default function ArchitecturePage() {

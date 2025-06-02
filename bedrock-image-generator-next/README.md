@@ -138,11 +138,10 @@ npm run dev
 To run the app in the background and keep it running after you log out, use `nohup`:
 
 ```
-nohup npm run dev > app.log 2>&1 &
+nohup npm run dev > /dev/null 2>&1 &
 ```
 
-- This will start the app and write output to `app.log`.
-- You can check the log with `tail -f app.log`.
+- This will start the app and discard all output.
 - To stop the app, find the process ID with `ps aux | grep next` and kill it with `kill <pid>`.
 
 ## Misc
