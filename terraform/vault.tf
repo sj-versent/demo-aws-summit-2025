@@ -10,9 +10,9 @@ resource "vault_auth_backend" "approle" {
 resource "vault_approle_auth_backend_role" "bedrock_app" {
   backend        = vault_auth_backend.approle.path
   role_name      = "bedrock-app"
-  secret_id_ttl  = "24h"
-  token_ttl      = "20m"
-  token_max_ttl  = "30m"
+  secret_id_ttl  = 86400
+  token_ttl      = 1200
+  token_max_ttl  = 1800
   token_policies = [vault_policy.bedrock_app_policy.name]
 }
 
