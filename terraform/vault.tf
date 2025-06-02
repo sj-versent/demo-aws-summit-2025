@@ -57,4 +57,14 @@ resource "vault_aws_secret_backend_role" "bedrock_app" {
   ]
 }
 EOF
+}
+
+output "bedrock_app_role_id" {
+  description = "The AppRole role_id for bedrock-app."
+  value       = vault_approle_auth_backend_role.bedrock_app.role_id
+}
+
+output "bedrock_app_secret_id" {
+  description = "The AppRole secret_id for bedrock-app. This is a single-use secret_id generated at apply time."
+  value       = vault_approle_auth_backend_role.bedrock_app.secret_id
 } 
