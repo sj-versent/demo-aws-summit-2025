@@ -16,18 +16,13 @@ resource "vault_approle_auth_backend_role" "bedrock_app" {
   token_policies = [vault_policy.bedrock_app_policy.name]
 }
 
-resource "vault_mount" "aws" {
-  path = "aws"
-  type = "aws"
-}
-
 data "vault_kv_secret_v2" "aws_creds" {
      mount = "kv-v2"
      name  = "bedrock/aws"
 }
 
 resource "vault_aws_secret_backend" "aws" {
-  path       = vault_mount.aws.path
+  path       = "aws"
   access_key = data.vault_kv_secret_v2.aws_creds.data["access_key"]
   secret_key = data.vault_kv_secret_v2.aws_creds.data["secret_key"]
   region     = "us-east-1"
@@ -43,7 +38,7 @@ EOF
 }
 
 resource "vault_aws_secret_backend_role" "bedrock_app" {
-  backend         = vault_mount.aws.path
+  backend         = "aws"
   name            = "bedrock-app"
   credential_type = "assumed_role"
   role_arns       = ["arn:aws:iam::822202704205:role/VaultBedrockAccess"]
