@@ -1,6 +1,20 @@
 # Bedrock Image Generator
 
-This next.js app provides a demo of using traditional VM infrastructure to access GenAI services hosted on Bedrock.
+## Installing Node.js and npm
+
+Before running this project, ensure Node.js and npm are installed on your server. On Ubuntu, you can install them with:
+
+```sh
+sudo apt update
+sudo apt install -y nodejs npm
+```
+
+To verify the installation:
+
+```sh
+node -v
+npm -v
+```
 
 # Getting started
 

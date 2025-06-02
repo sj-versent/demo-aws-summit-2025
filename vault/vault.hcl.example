@@ -1,0 +1,22 @@
+storage "raft" {
+  path    = "/opt/vault/data"
+  node_id = "${VAULT_NODE_ID}"
+  retry_join {
+    leader_api_addr = "http://10.0.0.1:8200"
+  }
+  retry_join {
+    leader_api_addr = "http://10.0.0.2:8200"
+  }
+  retry_join {
+    leader_api_addr = "http://10.0.0.3:8200"
+  }
+}
+
+listener "tcp" {
+  address     = "0.0.0.0:8200"
+  tls_disable = 1 # For demo only; use TLS in production
+}
+
+api_addr = "${VAULT_API_ADDR}"
+cluster_addr = "${VAULT_CLUSTER_ADDR}"
+ui = true 

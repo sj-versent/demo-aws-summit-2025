@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
+import Link from "next/link";
 
 // Local assets
 import VersentLogo from "@/assets/V-mark-Green.svg";
@@ -48,6 +49,13 @@ const STEP_ICONS = [
 
 function getStepIndex(status: string) {
   return STEPS.findIndex((step) => status && status.startsWith(step));
+}
+
+// Helper to detect if a base64 string is an MP4 (very basic check)
+function isMp4(base64: string) {
+  // MP4s often start with 'AAAA' or 'AAAAFGZ0' in base64 (ftyp)
+  // You may want to improve this check for your use case
+  return base64.startsWith('AAAA') || base64.startsWith('GkXf');
 }
 
 export default function ImageGenerator() {
@@ -200,11 +208,21 @@ export default function ImageGenerator() {
           onClick={() => setFullscreenImage(null)}
         >
           <div className="relative max-w-4xl max-h-screen w-full flex flex-col items-center">
-            <img 
-              src={`data:image/png;base64,${fullscreenImage}`} 
-              alt="Fullscreen view" 
-              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-            />
+            {isMp4(fullscreenImage) ? (
+              <video
+                src={`data:video/mp4;base64,${fullscreenImage}`}
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                controls
+                autoPlay
+                onEnded={e => e.currentTarget.pause()}
+              />
+            ) : (
+              <img
+                src={`data:image/png;base64,${fullscreenImage}`}
+                alt="Fullscreen view"
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              />
+            )}
             <button 
               className="mt-4 bg-white text-gray-800 px-6 py-2 rounded-full font-medium hover:bg-gray-100 transition-colors"
               onClick={() => setFullscreenImage(null)}
@@ -259,7 +277,13 @@ export default function ImageGenerator() {
               <span role="img" aria-label="gallery">{showGallery ? '🎨' : '🖼️'}</span>
               {showGallery ? 'Hide Gallery' : 'View Gallery'}
             </button>
-            
+            <Link
+              href="/architecture"
+              className="flex items-center justify-center gap-2 w-full bg-blue-200 hover:bg-blue-300 text-blue-900 font-medium rounded-xl px-4 py-3 transition-colors text-lg text-center mt-2"
+            >
+              <span role="img" aria-label="architecture">🏛️</span>
+              View Architecture
+            </Link>
             {generatedImages.length > 0 && (
               <button
                 onClick={clearGallery}
@@ -320,12 +344,22 @@ export default function ImageGenerator() {
               {error && <div className="text-red-500 text-center font-medium">{error}</div>}
               {image && (
                 <div className="flex flex-col items-center mt-6 w-full">
-                  <img 
-                    src={`data:image/png;base64,${image}`} 
-                    alt="Generated" 
-                    className={`rounded-xl shadow-lg max-h-80 object-contain border-2 border-[#6ee43b] cursor-pointer transition-all duration-300 hover:opacity-90`}
-                    onClick={() => toggleFullscreen(image)}
-                  />
+                  {isMp4(image) ? (
+                    <video
+                      src={`data:video/mp4;base64,${image}`}
+                      className="rounded-xl shadow-lg max-h-80 object-contain border-2 border-[#6ee43b] cursor-pointer transition-all duration-300 hover:opacity-90"
+                      controls
+                      onEnded={e => e.currentTarget.pause()}
+                      onClick={() => toggleFullscreen(image)}
+                    />
+                  ) : (
+                    <img
+                      src={`data:image/png;base64,${image}`}
+                      alt="Generated"
+                      className="rounded-xl shadow-lg max-h-80 object-contain border-2 border-[#6ee43b] cursor-pointer transition-all duration-300 hover:opacity-90"
+                      onClick={() => toggleFullscreen(image)}
+                    />
+                  )}
                   <div className="mt-4 text-lg text-gray-700 italic text-center bg-[#eaffd6] px-4 py-2 rounded w-full">
                     {generateCaption(prompt)}
                   </div>
@@ -359,12 +393,22 @@ export default function ImageGenerator() {
                   {generatedImages.map((genImage) => (
                     <div key={genImage.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
                       <div className="p-1 bg-gradient-to-r from-[#6ee43b] to-[#4bbf2b]">
-                      <img 
-                          src={`data:image/png;base64,${genImage.image}`} 
-                          alt={genImage.prompt}
-                          className="w-full h-48 object-cover bg-white cursor-pointer hover:opacity-90 transition-all"
-                          onClick={() => toggleFullscreen(genImage.image)}
-                        />
+                        {isMp4(genImage.image) ? (
+                          <video
+                            src={`data:video/mp4;base64,${genImage.image}`}
+                            className="w-full h-48 object-cover bg-white cursor-pointer hover:opacity-90 transition-all"
+                            controls
+                            onEnded={e => e.currentTarget.pause()}
+                            onClick={() => toggleFullscreen(genImage.image)}
+                          />
+                        ) : (
+                          <img
+                            src={`data:image/png;base64,${genImage.image}`}
+                            alt={genImage.prompt}
+                            className="w-full h-48 object-cover bg-white cursor-pointer hover:opacity-90 transition-all"
+                            onClick={() => toggleFullscreen(genImage.image)}
+                          />
+                        )}
                       </div>
                       <div className="p-4">
                         <p className="text-sm text-gray-500 mb-1">
