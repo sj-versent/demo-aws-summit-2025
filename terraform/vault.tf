@@ -16,10 +16,10 @@ resource "vault_approle_auth_backend_role" "bedrock_app" {
   token_policies = [vault_policy.bedrock_app_policy.name]
 }
 
-resource "vault_mount" "aws" {
-  path = "aws"
-  type = "aws"
-}
+# resource "vault_mount" "aws" {
+#   path = "aws"
+#   type = "aws"
+# }
 
 data "vault_kv_secret_v2" "aws_creds" {
      mount = "kv-v2"
