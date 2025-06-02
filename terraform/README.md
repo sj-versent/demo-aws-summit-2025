@@ -21,7 +21,7 @@ This directory contains Terraform code to configure HashiCorp Vault for use with
 Before running Terraform, add your AWS credentials to Vault:
 
 ```sh
-vault kv put secret/bedrock/aws access_key=YOUR_AWS_ACCESS_KEY secret_key=YOUR_AWS_SECRET_KEY
+vault kv put kv/bedrock/aws access_key=YOUR_AWS_ACCESS_KEY secret_key=YOUR_AWS_SECRET_KEY
 ```
 
 ## Usage

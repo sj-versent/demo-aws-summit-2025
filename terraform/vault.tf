@@ -22,7 +22,7 @@ resource "vault_mount" "aws" {
 }
 
 data "vault_kv_secret_v2" "aws_creds" {
-  mount = "secret"
+  mount = "kv"
   name  = "bedrock/aws"
 }
 
